@@ -2,7 +2,13 @@
 session_start();
 $conn = new mysqli("localhost", "root", "", "users_db");
 
+if ($conn->connect_error) {
+    die("Kapcsolódási hiba: " . $conn->connect_error);
+}
+
 $recipe = null;
+$id = 0;
+
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
     $stmt = $conn->prepare("SELECT * FROM receptek WHERE id = ?");
@@ -14,7 +20,6 @@ if (isset($_GET['id'])) {
     }
     $stmt->close();
 }
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -44,9 +49,15 @@ $conn->close();
                 <p style="margin-top: 20px; color: #888; font-size: 0.9em;">
                     Feltöltve: <?php echo $recipe['created_at']; ?>
                 </p>
+
+                <?php 
+                    $page_type = 'recept'; 
+                    $page_id = $id; 
+                    include 'kommentek.php'; 
+                ?>
             </div>
         <?php else: ?>
-            <div class="content" style="text-align: center;">
+            <div style="text-align: center; padding: 50px;">
                 <h2>A keresett recept nem található.</h2>
                 <a href="index.php" style="color: #5e9cff;">Vissza a főoldalra</a>
             </div>
@@ -57,3 +68,4 @@ $conn->close();
     <script src="script.js"></script>
 </body>
 </html>
+<?php $conn->close(); ?>

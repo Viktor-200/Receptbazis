@@ -1,10 +1,14 @@
 <?php
 session_start();
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit();
+// Kapcsolódás az adatbázishoz
+$conn = new mysqli("localhost", "root", "", "users_db");
+
+if ($conn->connect_error) {
+    die("Kapcsolódási hiba: " . $conn->connect_error);
 }
+
+// --- JAVÍTÁS: Ékezetek biztosítása a lekéréseknél ---
+$conn->set_charset("utf8mb4");
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -20,7 +24,8 @@ if (isset($_GET['logout'])) {
 <?php include 'header.php'; ?>
 
 <div class="content">
-    <h1 id="pageTitle">Konyhai Fogalmak</h1>
+    <h1 id="pageTitle" style="margin-bottom: 20px;">Konyhai Fogalmak</h1>
+    
     <table class="helper-table">
         <thead>
             <tr>
@@ -68,3 +73,6 @@ if (isset($_GET['logout'])) {
 <script src="script.js"></script>
 </body>
 </html>
+<?php 
+$conn->close(); 
+?>
