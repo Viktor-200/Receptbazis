@@ -12,6 +12,13 @@
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
         <div id="autocomplete-results"></div>
+
+        <?php if (isset($_SESSION['show_welcome_header']) && $_SESSION['show_welcome_header']): ?>
+            <div class="welcome-msg-header">
+                Üdvözlünk, <?php echo htmlspecialchars($_SESSION['username']); ?>!
+            </div>
+            <?php unset($_SESSION['show_welcome_header']); ?>
+        <?php endif; ?>
     </div>
 
     <div class="navbar">

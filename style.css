@@ -401,7 +401,40 @@ body.light-mode .footer {
     animation: fadeIn 0.8s ease-in;
 }
 
+.welcome-msg-header {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    animation: fadeAndHide 1s forwards;
+    animation-delay: 1s;
+}
+
+@keyframes fadeAndHide {
+    0% { opacity: 1; display: block; }
+    99% { opacity: 0; display: block; }
+    100% { opacity: 0; display: none; visibility: hidden; }
+}
+
+.form-container p a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+    font-weight: 500;
+}
+
+.form-container p a:hover {
+    color: #5e9cff !important;
+    text-decoration: none !important;
+}
+
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+

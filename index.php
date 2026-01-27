@@ -7,11 +7,10 @@ if (isset($_GET['logout'])) {
     exit();
 }
 
-if (!isset($_SESSION['welcome_shown']) && isset($_SESSION['username'])) {
-    $_SESSION['welcome_shown'] = true;
-    $showWelcome = true;
-} else {
-    $showWelcome = false;
+// Csak akkor állítjuk be, ha most lépett be és még nem mutattuk meg
+if (isset($_SESSION['username']) && !isset($_SESSION['welcome_processed'])) {
+    $_SESSION['show_welcome_header'] = true;
+    $_SESSION['welcome_processed'] = true; // Jelöljük, hogy a fejléc megkapta a parancsot
 }
 
 $searchResults = [];
@@ -42,36 +41,23 @@ if (isset($_GET['search'])) {
     <?php include 'header.php'; ?>
 
     <div class="content">
-        
-        <?php if ($showWelcome): ?>
-            <h1 id="welcomeMessage" class="fade-in">
-                Üdvözlünk, <?php echo htmlspecialchars($_SESSION['username']); ?>!
-            </h1>
-        <?php endif; ?>
-
         <?php if (!empty($searchResults)): ?>
             <div class="results-container">
                 <?php foreach ($searchResults as $recipe): ?>
                     <div class="recipe-card" onclick="location.href='recept.php?id=<?php echo $recipe['id']; ?>'" style="cursor: pointer;">
-                        
                         <h3><?php echo htmlspecialchars($recipe['title']); ?></h3>
-                        
                         <?php if (!empty($recipe['image_path'])): ?>
                             <img src="<?php echo htmlspecialchars($recipe['image_path']); ?>" 
                                  alt="<?php echo htmlspecialchars($recipe['title']); ?>"
                                  style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-top: 10px;">
                         <?php endif; ?>
-                        
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-
     </div>
 
     <?php include 'footer.php'; ?>
-
     <script src="script.js"></script>
-
 </body>
 </html>
