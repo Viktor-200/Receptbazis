@@ -1,3 +1,20 @@
+<?php
+if (isset($_SESSION['username']) && !isset($_SESSION['profile_pic'])) {
+    $conn_h = new mysqli("localhost", "root", "", "users_db");
+    $stmt_h = $conn_h->prepare("SELECT profile_pic FROM felhasznalok WHERE username = ?");
+    $stmt_h->bind_param("s", $_SESSION['username']);
+    $stmt_h->execute();
+    $res_h = $stmt_h->get_result()->fetch_assoc();
+    $_SESSION['profile_pic'] = !empty($res_h['profile_pic']) ? $res_h['profile_pic'] : 'img/alap.png';
+    $conn_h->close();
+}
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+?>
 <div class="header">
     <div class="logo-container">
         <a href="index.php">
@@ -28,7 +45,19 @@
 
         <?php if (isset($_SESSION['username'])): ?>
             <a href="feltoltes.php" class="action-button">Feltöltés</a>
-            <a id="signoutBtn" href="?logout=true">Kijelentkezés</a>
+            
+            <div class="user-dropdown">
+                <div class="dropdown-trigger">
+                    <img src="<?php echo htmlspecialchars($_SESSION['profile_pic']); ?>" alt="Profilkép" class="nav-profile-pic">
+                </div>
+                <div class="dropdown-content">
+                    <div class="dropdown-header"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
+                    <a href="profil.php"><i class="fas fa-user"></i> Profilom</a>
+                    <a href="beallitasok.php"><i class="fas fa-cog"></i> Beállítások</a>
+                    <hr>
+                    <a href="?logout=true"><i class="fas fa-sign-out-alt"></i> Kijelentkezés</a>
+                </div>
+            </div>
         <?php else: ?>
             <a id="signoutBtn" href="login.php">Bejelentkezés</a>
         <?php endif; ?>

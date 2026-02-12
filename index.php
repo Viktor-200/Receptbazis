@@ -19,15 +19,14 @@ if ($conn->connect_error) {
 $conn->set_charset("utf8mb4");
 
 $randomRecipes = [];
-$res = $conn->query("SELECT * FROM receptek ORDER BY RAND() LIMIT 10"); // Itt lett 10
+$res = $conn->query("SELECT * FROM receptek ORDER BY RAND() LIMIT 10");
 if ($res) {
     $randomRecipes = $res->fetch_all(MYSQLI_ASSOC);
 }
 
-// 2. KERESÉS KEZELÉSE
 $searchResults = [];
 if (isset($_GET['search']) && !empty($_GET['search'])) {
-    $search = "%" . $_GET['search'] . "%"; // Itt volt a hiba, most már javítva!
+    $search = "%" . $_GET['search'] . "%";
     $stmt = $conn->prepare("SELECT * FROM receptek WHERE title LIKE ?");
     $stmt->bind_param("s", $search);
     $stmt->execute();
@@ -42,6 +41,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receptbázis - Kezdőlap</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="img/favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
 <body class="dark-mode">
@@ -52,7 +52,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
         
         <?php if (!isset($_GET['search']) && !empty($randomRecipes)): ?>
         <div class="daily-recommendation">
-            <h2 style="margin-bottom: 20px; color: #fff; border-left: 4px solid #5e9cff; padding-left: 15px;">Ajánlásaink</h2>
+            <h2 style="margin-bottom: 20px; border-left: 4px solid #5e9cff; padding-left: 15px;">Ajánlásaink</h2>
             <div class="recommendation-grid"> <?php foreach ($randomRecipes as $r): ?>
                     <div class="recommendation-card" onclick="location.href='recept.php?id=<?php echo $r['id']; ?>'">
                         <?php if (!empty($r['image_path'])): ?>

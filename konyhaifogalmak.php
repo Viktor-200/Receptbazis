@@ -1,13 +1,11 @@
 <?php
 session_start();
-// Kapcsolódás az adatbázishoz
 $conn = new mysqli("localhost", "root", "", "users_db");
 
 if ($conn->connect_error) {
     die("Kapcsolódási hiba: " . $conn->connect_error);
 }
 
-// --- JAVÍTÁS: Ékezetek biztosítása a lekéréseknél ---
 $conn->set_charset("utf8mb4");
 ?>
 <!DOCTYPE html>
@@ -17,6 +15,7 @@ $conn->set_charset("utf8mb4");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konyhai Fogalmak</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="img/favicon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
 <body class="dark-mode">
