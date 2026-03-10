@@ -15,8 +15,76 @@ if (isset($_GET['logout'])) {
     exit();
 }
 ?>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<style>
+.sidebar .material-symbols-outlined {
+    margin-right: 15px;
+    width: 25px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 22px;
+}
+.category-list li a {
+    display: flex;
+    align-items: center;
+}
+</style>
+
+<div id="sideMenu" class="sidebar">
+    <div class="sidebar-header">
+        <button id="closeMenu" class="menu-icon-btn"><i class="fas fa-times"></i></button>
+        <h3>Kategóriák</h3>
+    </div>
+    <ul class="category-list">
+        <li>
+            <a href="index.php">
+                <i class="fas fa-home" style="margin-right: 15px; width: 25px; text-align: center;"></i> 
+                Összes recept
+            </a>
+        </li>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+        
+        <li>
+            <a href="index.php?cat=Reggeli">
+                <span class="material-symbols-outlined">egg_alt</span> Reggelik
+            </a>
+        </li>
+        <li>
+            <a href="index.php?cat=Leves">
+                <span class="material-symbols-outlined">ramen_dining</span> Levesek
+            </a>
+        </li>
+        <li>
+            <a href="index.php?cat=Főfogás">
+                <span class="material-symbols-outlined">dinner_dining</span> Főfogások
+            </a>
+        </li>
+        <li>
+            <a href="index.php?cat=Saláta">
+                <span class="material-symbols-outlined">psychiatry</span> Saláták / Vegán
+            </a>
+        </li>
+        <li>
+            <a href="index.php?cat=Desszert">
+                <span class="material-symbols-outlined">icecream</span> Desszertek
+            </a>
+        </li>
+        <li>
+            <a href="index.php?cat=Ital">
+                <span class="material-symbols-outlined">water_full</span> Italok
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="overlay" class="overlay"></div>
+
 <div class="header">
     <div class="logo-container">
+        <button id="menuBtn" class="menu-icon-btn">
+            <i class="fas fa-bars"></i>
+        </button>
         <a href="index.php">
             <img id="logo" src="img/feketelogo.png" alt="Receptbázis">
         </a>
@@ -28,7 +96,7 @@ if (isset($_GET['logout'])) {
             <input type="text" id="searchInput" name="search" placeholder="Keress receptek között..." required>
             <button type="submit"><i class="fas fa-search"></i></button>
         </form>
-        <div id="autocomplete-results"></div>
+        <div id="searchResults" class="search-results"></div>
 
         <?php if (isset($_SESSION['show_welcome_header']) && $_SESSION['show_welcome_header']): ?>
             <div class="welcome-msg-header">
@@ -59,7 +127,7 @@ if (isset($_GET['logout'])) {
                 </div>
             </div>
         <?php else: ?>
-            <a id="signoutBtn" href="login.php">Bejelentkezés</a>
+            <a href="login.php" class="action-button">Bejelentkezés</a>
         <?php endif; ?>
     </div>
 </div>

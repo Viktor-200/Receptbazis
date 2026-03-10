@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
                     <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profilkép" 
-                         style="width: 130px; height: 130px; border-radius: 50%; border: 3px solid #5e9cff; object-fit: cover; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                         style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                     
                     <label for="profile_image" class="action-button" style="display: inline-block; cursor: pointer; padding: 8px 20px; font-size: 0.9em;">
                         <i class="fas fa-camera"></i> Kép cseréje
@@ -107,10 +107,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
 
                 <label for="new_username">Felhasználónév módosítása:</label>
-                <input type="text" name="new_username" id="new_username" placeholder="<?php echo htmlspecialchars($current_user); ?>" style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #444; background: #333; color: white;">
+                <input type="text" name="new_username" id="new_username" placeholder=" " style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #444; background: #333; color: white;">
 
                 <label for="new_password">Új jelszó megadása:</label>
-                <input type="password" name="new_password" id="new_password" placeholder="Hagyja üresen, ha nem módosítja" style="width: 100%; padding: 10px; margin-bottom: 25px; border-radius: 5px; border: 1px solid #444; background: #333; color: white;">
+                <input type="password" name="new_password" id="new_password" placeholder=" " style="width: 100%; padding: 10px; margin-bottom: 25px; border-radius: 5px; border: 1px solid #444; background: #333; color: white;">
 
                 <button type="submit" class="action-button" style="width: 100%; padding: 12px; font-weight: bold;">Módosítások mentése</button>
             </form>

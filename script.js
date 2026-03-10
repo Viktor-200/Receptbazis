@@ -5,23 +5,29 @@ const logo = document.getElementById("logo");
 let isDarkMode = localStorage.getItem("darkMode") === "true";
 
 function applyTheme() {
-    if (isDarkMode) {
-        document.body.classList.add("dark-mode");
-        document.body.classList.remove("light-mode");
-        if(themeIcon) {
-            themeIcon.classList.remove("fa-moon");
-            themeIcon.classList.add("fa-sun");
+    document.body.style.opacity = "0.7";
+    
+    setTimeout(() => {
+        if (isDarkMode) {
+            document.body.classList.add("dark-mode");
+            document.body.classList.remove("light-mode");
+            if(themeIcon) {
+                themeIcon.classList.remove("fa-moon");
+                themeIcon.classList.add("fa-sun");
+            }
+            if(logo) logo.src = "img/feketelogo.png";
+        } else {
+            document.body.classList.add("light-mode");
+            document.body.classList.remove("dark-mode");
+            if(themeIcon) {
+                themeIcon.classList.remove("fa-sun");
+                themeIcon.classList.add("fa-moon");
+            }
+            if(logo) logo.src = "img/feherlogo.png";
         }
-        if(logo) logo.src = "img/feketelogo.png";
-    } else {
-        document.body.classList.add("light-mode");
-        document.body.classList.remove("dark-mode");
-        if(themeIcon) {
-            themeIcon.classList.remove("fa-sun");
-            themeIcon.classList.add("fa-moon");
-        }
-        if(logo) logo.src = "img/feherlogo.png";
-    }
+        
+        document.body.style.opacity = "1";
+    }, 150);
 }
 
 applyTheme();
@@ -44,63 +50,55 @@ function updateClock() {
         clockElement.textContent = `${hours}:${minutes}:${seconds}`;
     }
 }
-
 setInterval(updateClock, 1000);
 updateClock();
 
-window.addEventListener('load', () => {
-    const msg = document.getElementById("welcomeMessage");
-    if (msg) {
-        setTimeout(() => msg.classList.add("fade-out"), 2000);
-    }
-});
-
-const searchInput = document.getElementById('searchInput');
-const resultsDiv = document.getElementById('autocomplete-results');
-
-if (searchInput && resultsDiv) {
-    searchInput.addEventListener('input', function() {
-        const term = this.value;
-
-        if (term.length < 2) {
-            resultsDiv.innerHTML = '';
-            return;
-        }
-
-        fetch(`search_api.php?term=${encodeURIComponent(term)}`)
-            .then(response => response.json())
-            .then(data => {
-                resultsDiv.innerHTML = '';
-                
-                if (data.length > 0) {
-                    data.forEach(recipe => {
-                        const div = document.createElement('div');
-                        div.className = 'autocomplete-item';
-                        
-                        const imgHTML = recipe.image_path 
-                            ? `<img src="${recipe.image_path}" alt="${recipe.title}">` 
-                            : '';
-                        
-                        div.innerHTML = `${imgHTML}<span>${recipe.title}</span>`;
-                        
-                        div.addEventListener('click', () => {
-                            window.location.href = `recept.php?id=${recipe.id}`;
-                        });
-                        
-                        resultsDiv.appendChild(div);
-                    });
-                }
-            })
-            .catch(err => console.error('Hiba:', err));
-    });
-
-    document.addEventListener('click', (e) => {
-        if (e.target !== searchInput && e.target !== resultsDiv) {
-            resultsDiv.innerHTML = '';
-        }
-    });
-    
 document.addEventListener('DOMContentLoaded', function() {
+    
+    const searchInput = document.getElementById('searchInput');
+    const resultsDiv = document.getElementById('searchResults');
+
+    if (searchInput && resultsDiv) {
+        searchInput.addEventListener('input', () => {
+            const term = searchInput.value.trim();
+            if (term.length < 2) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            fetch(`search_api.php?term=${encodeURIComponent(term)}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(recipe => {
+                            const div = document.createElement('div');
+                            div.className = 'search-item';
+                            
+                            const imgHTML = recipe.image_path 
+                                ? `<img src="${recipe.image_path}" alt="${recipe.title}">` 
+                                : '';
+                            
+                            div.innerHTML = `${imgHTML}<span>${recipe.title}</span>`;
+                            
+                            div.addEventListener('click', () => {
+                                window.location.href = `recept.php?id=${recipe.id}`;
+                            });
+                            
+                            resultsDiv.appendChild(div);
+                        });
+                    }
+                })
+                .catch(err => console.error('Hiba a keresés során:', err));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput && e.target !== resultsDiv) {
+                resultsDiv.innerHTML = '';
+            }
+        });
+    }
+
     const dropdownTrigger = document.querySelector('.dropdown-trigger');
     const dropdownContent = document.querySelector('.dropdown-content');
 
@@ -118,7 +116,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const menuBtn = document.getElementById('menuBtn');
+    const closeMenu = document.getElementById('closeMenu');
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('overlay');
+
+    function toggleSidebar() {
+        if (sideMenu && overlay) {
+            sideMenu.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+    }
+
+    if(menuBtn) menuBtn.addEventListener('click', toggleSidebar);
+    if(closeMenu) closeMenu.addEventListener('click', toggleSidebar);
+    if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+    window.addEventListener('keydown', (e) => {
+        if(e.key === "Escape" && sideMenu && sideMenu.classList.contains('open')) {
+            toggleSidebar();
+        }
+    });
 });
-
-
-}

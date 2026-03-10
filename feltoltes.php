@@ -16,6 +16,7 @@ $conn->set_charset("utf8mb4");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $description = $_POST['description'];
+    $kategoria = $_POST['kategoria'] ?? 'Egyéb';
     
     $u_stmt = $conn->prepare("SELECT id FROM felhasznalok WHERE username = ?");
     $u_stmt->bind_param("s", $_SESSION['username']);
@@ -31,16 +32,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $image_path = "";
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $filename = time() . "_" . basename($_FILES["image"]["name"]);
+        $filename = "full_" . time() . "_" . basename($_FILES["image"]["name"]);
         $target_file = $target_dir . $filename;
-        
         if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
             $image_path = $target_file;
         }
     }
 
-    $stmt = $conn->prepare("INSERT INTO receptek (title, description, image_path, user_id) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("sssi", $title, $description, $image_path, $user_id);
+    $thumbnail_path = "";
+    if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] == 0) {
+        $thumb_filename = "thumb_" . time() . "_" . basename($_FILES["thumbnail"]["name"]);
+        $target_thumb = $target_dir . $thumb_filename;
+        if (move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $target_thumb)) {
+            $thumbnail_path = $target_thumb;
+        }
+    }
+
+    $stmt = $conn->prepare("INSERT INTO receptek (title, description, image_path, thumbnail_path, user_id, kategoria) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssis", $title, $description, $image_path, $thumbnail_path, $user_id, $kategoria);
     
     if ($stmt->execute()) {
         $message = "Recept sikeresen feltöltve!";
@@ -74,12 +83,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form method="POST" action="feltoltes.php" enctype="multipart/form-data">
                 <label for="title">Étel neve (Cím):</label>
-                <input type="text" id="title" name="title" required placeholder="Pl. Rakott krumpli">
+                <input type="text" id="title" name="title" required placeholder="Pl. Székely Káposzta">
+
+                <label for="kategoria" style="margin-top: 15px; display: block;">Kategória:</label>
+                <select id="kategoria" name="kategoria" required style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 4px; border: none; background: #444; color: white; font-family: inherit;">
+                    <option value="" disabled selected>Válassz egy kategóriát...</option>
+                    <option value="Reggeli">Reggeli</option>
+                    <option value="Leves">Leves</option>
+                    <option value="Főfogás">Főfogás</option>
+                    <option value="Saláták / Vegán">Saláták / Vegán</option>
+                    <option value="Desszert">Desszert</option>
+                    <option value="Ital">Ital</option>
+                    <option value="Egyéb">Egyéb</option>
+                </select>
 
                 <label for="description">Leírás (Elkészítés):</label>
-                <textarea id="description" name="description" rows="6" required placeholder="Ide írd a recept leírását..." style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-family: inherit;"></textarea>
+                <textarea id="description" name="description" rows="6" required placeholder="Ide írd a recept leírását, vagy illessz be egy YouTube linket" style="width: 100%; background: #444; color: white; border: none; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-family: inherit;"></textarea>
 
-                <label for="image">Kép feltöltése:</label>
+                <label for="thumbnail" style="margin-top: 15px; display: block;">Indexkép feltöltése (kötelező)</label>
+                <input type="file" id="thumbnail" name="thumbnail" accept="image/*">
+
+                <label for="image">Kép az ételről (Videó beágyazása esetén ne tölts fel képet!) </label>
                 <input type="file" id="image" name="image" accept="image/*">
 
                 <button type="submit" class="action-button" style="width: 100%; margin-top: 20px;">Recept beküldése</button>

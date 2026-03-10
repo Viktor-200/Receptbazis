@@ -49,6 +49,17 @@ $recipes_stmt->bind_param("i", $target_profile_id);
 $recipes_stmt->execute();
 $recipes_res = $recipes_stmt->get_result();
 
+$fav_stmt = $conn->prepare("
+    SELECT r.id, r.title, r.created_at 
+    FROM receptek r 
+    JOIN kedvencek k ON r.id = k.recept_id 
+    WHERE k.user_id = ? 
+    ORDER BY k.hozzaadva DESC
+");
+$fav_stmt->bind_param("i", $target_profile_id);
+$fav_stmt->execute();
+$favorites_res = $fav_stmt->get_result();
+
 $comments_stmt = $conn->prepare("
     SELECT h.*, r.title as recept_cim 
     FROM hozzaszolasok h 
@@ -92,13 +103,14 @@ $comments_res_prof = $comments_stmt->get_result();
             </div>
         </div>
 
-        <div class="profile-grid">
+        <div class="profile-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            
             <section>
-                <h2><i class="fas fa-utensils" style="color: #5e9cff; margin-right: 10px;"></i>Receptek</h2>
+                <h2><i class="fas fa-utensils" style="color: #5e9cff; margin-right: 10px;"></i>Feltöltött receptek</h2>
                 <div style="margin-top: 20px;">
                     <?php if ($recipes_res->num_rows > 0): ?>
                         <?php while($row = $recipes_res->fetch_assoc()): ?>
-                            <div class="activity-item">
+                            <div class="activity-item" style="background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333;">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                     <a href="recept.php?id=<?php echo $row['id']; ?>" style="color: white; font-weight: bold; text-decoration: none; font-size: 1.1em;">
                                         <?php echo htmlspecialchars($row['title']); ?>
@@ -106,14 +118,14 @@ $comments_res_prof = $comments_stmt->get_result();
                                     
                                     <?php if ($is_own_profile): ?>
                                         <div class="action-buttons">
-                                            <a href="edit_recipe.php?id=<?php echo $row['id']; ?>" title="Szerkesztés" style="color: #f39c12; margin-right: 15px;"><i class="fas fa-edit"></i></a>
+                                            <a href="edit_recipe.php?id=<?php echo $row['id']; ?>" title="Szerkesztés" style="color: #f39c12; margin-right: 10px;"><i class="fas fa-edit"></i></a>
                                             <a href="profil.php?delete_recipe_id=<?php echo $row['id']; ?>" 
                                                onclick="return confirm('Biztosan törlöd ezt a receptet?')" 
                                                title="Törlés" style="color: #e74c3c;"><i class="fas fa-trash"></i></a>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">Feltöltve: <?php echo $row['created_at']; ?></div>
+                                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">Feltöltve: <?php echo date("Y.m.d.", strtotime($row['created_at'])); ?></div>
                             </div>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -123,19 +135,39 @@ $comments_res_prof = $comments_stmt->get_result();
             </section>
 
             <section>
+                <h2><i class="fas fa-heart" style="color: #e74c3c; margin-right: 10px;"></i>Kedvenc receptek</h2>
+                <div style="margin-top: 20px;">
+                    <?php if ($favorites_res->num_rows > 0): ?>
+                        <?php while($fav = $favorites_res->fetch_assoc()): ?>
+                            <div class="activity-item" style="background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; border-left: 4px solid #e74c3c;">
+                                <div>
+                                    <a href="recept.php?id=<?php echo $fav['id']; ?>" style="color: white; font-weight: bold; text-decoration: none; font-size: 1.1em;">
+                                        <?php echo htmlspecialchars($fav['title']); ?>
+                                    </a>
+                                </div>
+                                <div style="font-size: 0.8em; color: #888; margin-top: 5px;">Eredeti feltöltés: <?php echo date("Y.m.d.", strtotime($fav['created_at'])); ?></div>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <p style="color: #666;">Még nincsenek elmentett receptek.</p>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section>
                 <h2><i class="fas fa-comment-alt" style="color: #5e9cff; margin-right: 10px;"></i>Legutóbbi hozzászólások</h2>
                 <div style="margin-top: 20px;">
                     <?php if ($comments_res_prof->num_rows > 0): ?>
                         <?php while($com = $comments_res_prof->fetch_assoc()): ?>
-                            <div class="activity-item">
+                            <div class="activity-item" style="background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333;">
                                 <div style="font-size: 0.8em; color: #5e9cff; margin-bottom: 5px;">
                                     <a href="recept.php?id=<?php echo $com['recept_id']; ?>" style="color: #5e9cff; text-decoration: none;">
                                         Recept: <?php echo htmlspecialchars($com['recept_cim'] ?? 'Törölt recept'); ?>
                                     </a>
                                 </div>
-                                <p style="margin: 0; font-style: italic;">"<?php echo htmlspecialchars($com['szoveg']); ?>"</p>
+                                <p style="margin: 0; font-style: italic; color: #ccc;">"<?php echo htmlspecialchars($com['szoveg']); ?>"</p>
                                 <div style="font-size: 0.75em; color: #666; margin-top: 8px; text-align: right;">
-                                    <?php echo $com['datum']; ?>
+                                    <?php echo date("Y.m.d. H:i", strtotime($com['datum'])); ?>
                                 </div>
                             </div>
                         <?php endwhile; ?>
@@ -144,6 +176,7 @@ $comments_res_prof = $comments_stmt->get_result();
                     <?php endif; ?>
                 </div>
             </section>
+
         </div>
     </div>
 

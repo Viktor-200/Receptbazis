@@ -2,6 +2,6 @@
 <div class="footer">
     <p>
         Receptbázis ✦ <?php echo date("Y.m.d"); ?> | 
-        Pontos idő: <span id="real-time-clock"><?php echo date("H:i:s"); ?></span>
+        Pontos idő (Budapest / CET): <span id="real-time-clock"><?php echo date("H:i:s"); ?></span>
     </p>
 </div>

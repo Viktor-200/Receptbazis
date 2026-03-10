@@ -26,87 +26,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_comment']) && is
     $u_stmt->bind_param("s", $_SESSION['username']);
     $u_stmt->execute();
     $u_res = $u_stmt->get_result()->fetch_assoc();
+    $uid = $u_res['id'];
 
-    if ($u_res) {
-        $user_id = $u_res['id'];
-        $comment_text = trim($_POST['comment_text']);
+    $comment_text = trim($_POST['comment_text']);
+    $current_page_type = $page_type ?? 'recept';
+
+    if (!empty($comment_text)) {
+        $ins_stmt = $conn->prepare("INSERT INTO hozzaszolasok (felhasznalo_id, recept_id, oldal_tipus, szoveg, datum) VALUES (?, ?, ?, ?, NOW())");
+        $ins_stmt->bind_param("iiss", $uid, $page_id, $current_page_type, $comment_text);
+        $ins_stmt->execute();
         
-        if (!empty($comment_text)) {
-            $db_recept_id = ($page_type === 'recept') ? $page_id : null;
-            $ins = $conn->prepare("INSERT INTO hozzaszolasok (recept_id, felhasznalo_id, szoveg, oldal_tipus) VALUES (?, ?, ?, ?)");
-            $ins->bind_param("iiss", $db_recept_id, $user_id, $comment_text, $page_type);
-            
-            if ($ins->execute()) {
-                echo "<script>window.location.href='" . $_SERVER['REQUEST_URI'] . "';</script>";
-                exit();
-            }
-        }
+        echo "<script>window.location.href='recept.php?id=" . $id . "';</script>";
+        exit();
     }
 }
 
-$sql = "SELECT h.*, f.username, f.profile_pic, f.id as user_id 
-        FROM hozzaszolasok h 
-        JOIN felhasznalok f ON h.felhasznalo_id = f.id 
-        WHERE h.recept_id = ? 
-        ORDER BY h.datum DESC";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$comments_res = $stmt->get_result();
+$query = "SELECT h.*, f.username, f.profile_pic 
+          FROM hozzaszolasok h 
+          JOIN felhasznalok f ON h.felhasznalo_id = f.id 
+          WHERE h.recept_id = ? AND h.oldal_tipus = ?
+          ORDER BY h.datum DESC";
+$get_comments = $conn->prepare($query);
+$current_page_type = $page_type ?? 'recept';
+$get_comments->bind_param("is", $page_id, $current_page_type);
+$get_comments->execute();
+$comments_res = $get_comments->get_result();
 ?>
 
-<div class="comments-section" style="margin-top: 50px; border-top: 1px solid #444; padding-top: 20px;">
-    <h3>Vélemények</h3>
+<div class="comments-section" style="margin-top: 50px; border-top: 1px solid #333; padding-top: 30px;">
+    <h3 style="margin-bottom: 25px;"><i class="fas fa-comments" style="color: #5e9cff; margin-right: 10px;"></i>Kommentek (<?php echo $comments_res->num_rows; ?>)</h3>
 
     <?php if (isset($_SESSION['username'])): ?>
-        <form method="POST" style="margin-top: 20px;">
-            <textarea name="comment_text" required placeholder="Írd le a véleményed..." style="width:100%; height:80px; margin-bottom:10px; padding:10px; border-radius:8px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #444; font-family: inherit; resize: vertical;"></textarea>
-            <button type="submit" name="send_comment" class="action-button">Küldés</button>
+        <form method="POST" style="margin-bottom: 40px; background: #2a2a2a; padding: 20px; border-radius: 12px; border: 1px solid #333;">
+            <textarea name="comment_text" placeholder="Írd le a véleményed..." required 
+                      style="width: 100%; height: 80px; background: #1a1a1a; color: white; border: 1px solid #444; padding: 12px; border-radius: 8px; resize: none; font-family: inherit; font-size: 1em;"></textarea>
+            <div style="text-align: right;">
+                <button type="submit" name="send_comment" class="action-button" style="margin-top: 10px; padding: 10px 30px; cursor: pointer;">Küldés</button>
+            </div>
         </form>
-    <?php else: ?>
-        <p style="margin-top: 20px;">A hozzászóláshoz <a href="login.php" style="color: #5e9cff;">be kell jelentkezned</a>.</p>
     <?php endif; ?>
 
-    <div class="comments-list" style="margin-top: 30px;">
-        <?php if ($comments_res && $comments_res->num_rows > 0): ?>
-            <?php while($c = $comments_res->fetch_assoc()): ?>
-                
-                <div class="comment-box" style="display: flex; gap: 15px; align-items: flex-start; background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; border-left: none;">
+    <div class="comments-list">
+        <?php if ($comments_res->num_rows > 0): ?>
+            <?php while ($c = $comments_res->fetch_assoc()): ?>
+                <div class="comment-item" style="display: flex; gap: 15px; margin-bottom: 25px; background: #222; padding: 15px; border-radius: 12px; border: 1px solid #333;">
                     
-                    <a href="profil.php?view_id=<?php echo $c['user_id']; ?>" style="flex-shrink: 0;">
+                    <a href="profil.php?view_id=<?php echo $c['felhasznalo_id']; ?>" style="flex-shrink: 0;">
                         <img src="<?php echo htmlspecialchars(!empty($c['profile_pic']) ? $c['profile_pic'] : 'img/alap.png'); ?>" 
-                             alt="<?php echo htmlspecialchars($c['username']); ?>"
-                             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #444;">
+                             style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-top: 1px; border: 2px solid #444;">
                     </a>
 
                     <div style="flex-grow: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <a href="profil.php?view_id=<?php echo $c['user_id']; ?>" style="text-decoration: none;">
-                                <strong style="color: #5e9cff; font-size: 1.05em;"><?php echo htmlspecialchars($c['username']); ?></strong>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <a href="profil.php?view_id=<?php echo $c['felhasznalo_id']; ?>" style="text-decoration: none;">
+                                <strong style="color: #5e9cff; font-size: 1.1em;"><?php echo htmlspecialchars($c['username']); ?></strong>
                             </a>
-                            
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <small style="color: #666;"><?php echo $c['datum']; ?></small>
-                                
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <small style="color: #666;"><?php echo date("Y.m.d. H:i", strtotime($c['datum'])); ?></small>
                                 <?php if (isset($_SESSION['username']) && $_SESSION['username'] === $c['username']): ?>
                                     <a href="recept.php?id=<?php echo $id; ?>&delete_comment_id=<?php echo $c['id']; ?>" 
-                                       onclick="return confirm('Törlöd a hozzászólást?')" 
-                                       title="Törlés"
-                                       style="color: #e74c3c; text-decoration: none; font-size: 0.9em; line-height: 1;">
-                                        <i class="fas fa-trash"></i>
+                                       onclick="return confirm('Biztosan törlöd?')" 
+                                       style="color: #ff6b6b; font-size: 0.9em;" title="Törlés">
+                                        <i class="fas fa-trash-alt"></i>
                                     </a>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        
-                        <p style="margin: 0; color: #ddd; line-height: 1.4;"><?php echo nl2br(htmlspecialchars($c['szoveg'])); ?></p>
+                        <p style="margin: 0; color: #ddd; line-height: 1.5; font-size: 0.95em;">
+                            <?php echo nl2br(htmlspecialchars($c['szoveg'])); ?>
+                        </p>
                     </div>
-
                 </div>
-
             <?php endwhile; ?>
         <?php else: ?>
-            <p style="color: #666; margin-top: 20px;">Még nincs hozzászólás. Legyél te az első!</p>
+            <p style="color: #666; text-align: center; padding: 20px;">Még nincs hozzászólás. Legyél te az első!</p>
         <?php endif; ?>
     </div>
 </div>
